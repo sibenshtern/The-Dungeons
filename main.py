@@ -1,6 +1,10 @@
+import os
 import sys
+import webbrowser
 
 import pygame
+
+from Button import Button
 
 
 pygame.init()
@@ -13,9 +17,71 @@ FPS = 60
 running = True
 
 
+def main_menu():
+    """
+    Function which show main menu (also start screen)
+    :return: None
+    """
+
+    screen.fill(pygame.Color('white'))
+
+    buttons_group = pygame.sprite.Group()
+
+    # create header
+    header = "The Dungeons"
+
+    font = pygame.font.Font(os.path.join('data', 'font.ttf'), 60)
+
+    rendered_header = font.render(header, 1, pygame.Color('yellow'))
+    header_rect = rendered_header.get_rect()
+    header_rect.x = WINDOW_WIDTH // 2 - header_rect.width // 2
+    header_rect.y = 48
+
+    screen.blit(rendered_header, header_rect)
+
+    # create buttons
+    buttons = ['Start Game', 'Record Table', 'Settings']
+    button_classes = []
+
+    for i in range(len(buttons)):
+        button_center = WINDOW_WIDTH // 2
+        button_y = 131 + (16 * (i + 1)) + 64 * i
+
+        button = Button((button_center, button_y), buttons_group, screen,
+                        buttons[i], type=None, website=None)
+        button_classes.append(button)
+
+    button_center = WINDOW_WIDTH - 112
+    button_y = WINDOW_HEIGHT - 96
+
+    button_classes.append(
+        Button(
+            (button_center, button_y), buttons_group, screen, 'Github',
+            type='open_website', website='Github'
+        )
+    )
+
+    # main cycle in function
+    while True:
+        for menu_event in pygame.event.get():
+            if menu_event.type == pygame.QUIT:
+                terminate()
+            if menu_event.type == pygame.MOUSEBUTTONDOWN:
+                for button in button_classes:
+                    if button.rect.collidepoint(menu_event.pos):
+                        if button.button_type == 'open_website':
+                            webbrowser.open('https://github.com/sibenshtern')
+
+        buttons_group.draw(screen)
+        buttons_group.update()
+        pygame.display.flip()
+
+
 def terminate():
     sys.exit(pygame.quit())
 
+
+main_menu()
 
 while running:
     for event in pygame.event.get():
