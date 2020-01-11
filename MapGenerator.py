@@ -112,6 +112,7 @@ class Field:
     def add_room(self, room) -> None:
         if 0 <= room.row < self.width and 0 <= room.column < self.width:
             self.field[room.row][room.column] = room
+            self.rooms.append(room)
 
     def get_room(self, row: int, column: int) -> Any:
         if 0 <= row < self.width and 0 <= column < self.width:

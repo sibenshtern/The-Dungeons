@@ -20,7 +20,13 @@ def return_tiles():
             'mid': load_image('Tiles\\Sides', 'mid.png'),
             'right': load_image('Tiles\\Sides', 'right.png'),
             'right_corner': load_image('Tiles\\Sides', 'side_front_left.png'),
-            'left_corner': load_image('Tiles\\Sides', 'side_front_right.png')
+            'left_corner': load_image('Tiles\\Sides', 'side_front_right.png'),
+            'door_frame_left': load_image('Tiles\\Sides',
+                                          'door_frame_left.png'),
+            'door_frame_right': load_image('Tiles\\Sides',
+                                           'door_frame_right.png'),
+            'opened_door': load_image('door_open.png'),
+            'closed_door': load_image('door_closed.png')
         },
         'sides': {
             'left': load_image('Tiles\\Sides', 'side_mid_left.png'),
@@ -33,9 +39,7 @@ def return_tiles():
             load_image('Tiles\\Floor', '1.png'),
             load_image('Tiles\\Floor', '2.png'),
             load_image('Tiles\\Floor', '3.png'),
-            load_image('Tiles\\Floor', '4.png'),
             load_image('Tiles\\Floor', '5.png'),
-            load_image('Tiles\\Floor', '6.png'),
         ],
         'animated': {
             'image': load_image('Tiles\\Animated', 'spikes_anim.png'),
