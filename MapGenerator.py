@@ -8,6 +8,7 @@ RIGHT = 1
 DOWN = 2
 LEFT = 3
 DIRECTIONS = [UP, RIGHT, DOWN, LEFT]
+# DIRECTIONS = [UP, DOWN]
 
 MAP_WIDTH = 7
 
@@ -169,47 +170,55 @@ class EndRoom(Room):
         self.doors.append(door)
 
 
-field = Field(MAP_WIDTH)
+def generate_field():
+    field = Field(MAP_WIDTH)
 
-now_row = random.randint(3, field.width - 4)
-now_column = random.randint(3, field.width - 4)
+    now_row = random.randint(3, field.width - 4)
+    now_column = random.randint(3, field.width - 4)
 
-previous_row = now_row
-previous_column = now_column
+    field.add_room(EndRoom(now_row, now_column, description='SR'))
 
-field.add_room(EndRoom(now_row, now_column, description='SR'))
+    for i in range(16):
+        now_room = field.get_room(now_row, now_column)
 
-for i in range(12):
-    now_room = field.get_room(now_row, now_column)
+        for door in now_room.doors:
+            if door.type == END_ROOM:
+                if door.direction == UP and \
+                        field.get_room(now_row - 1, now_column) == 'VD':
+                    field.add_room(
+                        EndRoom(now_row - 1, now_column, door, 'ER'))
+                elif door.direction == RIGHT and \
+                        field.get_room(now_row, now_column + 1) == 'VD':
+                    field.add_room(
+                        EndRoom(now_row, now_column + 1, door, 'ER'))
+                elif door.direction == DOWN and \
+                        field.get_room(now_row + 1, now_column) == 'VD':
+                    field.add_room(
+                        EndRoom(now_row + 1, now_column, door, 'ER'))
+                elif door.direction == LEFT and \
+                        field.get_room(now_row, now_column + 1) == 'VD':
+                    field.add_room(
+                        EndRoom(now_row, now_column - 1, door, 'ER'))
+            elif door.type == MAIN_ROOM:
+                if door.direction == UP and \
+                        field.get_room(now_row - 1, now_column) == 'VD':
+                    field.add_room(
+                        MainRoom(now_row - 1, now_column, door, 'MR'))
+                    now_row -= 1
+                elif door.direction == RIGHT and \
+                        field.get_room(now_row, now_column + 1) == 'VD':
+                    field.add_room(
+                        MainRoom(now_row, now_column + 1, door, 'MR'))
+                    now_column += 1
+                elif door.direction == DOWN and \
+                        field.get_room(now_row + 1, now_column) == 'VD':
+                    field.add_room(
+                        MainRoom(now_row + 1, now_column, door, 'MR'))
+                    now_row += 1
+                elif door.direction == LEFT and \
+                        field.get_room(now_row, now_column - 1) == 'VD':
+                    field.add_room(
+                        MainRoom(now_row, now_column - 1, door, 'MR'))
+                    now_column -= 1
 
-    for door in now_room.doors:
-        if door.type == END_ROOM:
-            if door.direction == UP and \
-                    field.get_room(now_row - 1, now_column) == 'VD':
-                field.add_room(EndRoom(now_row - 1, now_column, door, 'ER'))
-            elif door.direction == RIGHT and \
-                    field.get_room(now_row, now_column + 1) == 'VD':
-                field.add_room(EndRoom(now_row, now_column + 1, door, 'ER'))
-            elif door.direction == DOWN and \
-                    field.get_room(now_row + 1, now_column) == 'VD':
-                field.add_room(EndRoom(now_row + 1, now_column, door, 'ER'))
-            elif door.direction == LEFT and \
-                    field.get_room(now_row, now_column + 1) == 'VD':
-                field.add_room(EndRoom(now_row, now_column - 1, door, 'ER'))
-        elif door.type == MAIN_ROOM:
-            if door.direction == UP and \
-                    field.get_room(now_row - 1, now_column) == 'VD':
-                field.add_room(MainRoom(now_row - 1, now_column, door, 'MR'))
-                now_row -= 1
-            elif door.direction == RIGHT and \
-                    field.get_room(now_row, now_column + 1) == 'VD':
-                field.add_room(MainRoom(now_row, now_column + 1, door, 'MR'))
-                now_column += 1
-            elif door.direction == DOWN and \
-                    field.get_room(now_row + 1, now_column) == 'VD':
-                field.add_room(MainRoom(now_row + 1, now_column, door, 'MR'))
-                now_row += 1
-            elif door.direction == LEFT and \
-                    field.get_room(now_row, now_column - 1) == 'VD':
-                field.add_room(MainRoom(now_row, now_column - 1, door, 'MR'))
-                now_column -= 1
+    return field

@@ -5,6 +5,7 @@ import webbrowser
 import pygame
 
 from Button import Button
+from Tiles import return_tiles
 
 
 pygame.init()
@@ -12,6 +13,8 @@ pygame.init()
 window_size = WINDOW_WIDTH, WINDOW_HEIGHT = 700, 500
 screen = pygame.display.set_mode(window_size)
 clock = pygame.time.Clock()
+buttons_sprites = pygame.sprite.Group()
+tiles = return_tiles()
 
 FPS = 60
 running = True
@@ -24,8 +27,6 @@ def main_menu():
     """
 
     screen.fill(pygame.Color('white'))
-
-    buttons_group = pygame.sprite.Group()
 
     # create header
     header = "The Dungeons"
@@ -47,7 +48,7 @@ def main_menu():
         button_center = WINDOW_WIDTH // 2
         button_y = 131 + (16 * (i + 1)) + 64 * i
 
-        button = Button((button_center, button_y), buttons_group, screen,
+        button = Button((button_center, button_y), buttons_sprites, screen,
                         buttons[i], type=None, website=None)
         button_classes.append(button)
 
@@ -56,7 +57,7 @@ def main_menu():
 
     button_classes.append(
         Button(
-            (button_center, button_y), buttons_group, screen, 'Github',
+            (button_center, button_y), buttons_sprites, screen, 'Github',
             type='open_website', website='Github'
         )
     )
@@ -72,8 +73,8 @@ def main_menu():
                         if button.button_type == 'open_website':
                             webbrowser.open('https://github.com/sibenshtern')
 
-        buttons_group.draw(screen)
-        buttons_group.update()
+        buttons_sprites.draw(screen)
+        buttons_sprites.update()
         pygame.display.flip()
 
 
