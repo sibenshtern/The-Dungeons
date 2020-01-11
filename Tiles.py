@@ -26,7 +26,7 @@ def return_tiles():
             'door_frame_right': load_image('Tiles\\Sides',
                                            'door_frame_right.png'),
             'opened_door': load_image('door_open.png'),
-            'closed_door': load_image('door_closed.png')
+            'closed_door': load_image('door_close.png')
         },
         'sides': {
             'left': load_image('Tiles\\Sides', 'side_mid_left.png'),
