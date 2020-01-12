@@ -12,11 +12,13 @@ class Player(pygame.sprite.Sprite):
         self.cut_sheet(run_sheet, rows, columns, self.run_frames)
         self.cur_frame = 0
         self.image = self.ide_frames[self.cur_frame]
-        self.rect = self.rect.move(x, y)
+        self.rect = self.rect.move(16 * x, 16 * y)
         self.now_anim = 'ide'
 
         self.previous_x = x
         self.previous_y = y
+
+        self.health = 20
 
     def cut_sheet(self, sheet, rows, columns, array):
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
@@ -29,19 +31,59 @@ class Player(pygame.sprite.Sprite):
                     pygame.Rect(frame_location, self.rect.size)
                 ))
 
+    def move(self, distance, collided_sprites, up=False, right=False,
+             down=False, left=False):
+        collide_with = pygame.sprite.spritecollideany(self, collided_sprites)
+
+        if collide_with:
+
+            print(f'Sprite x: {collide_with.rect.x}\n'
+                  f'Sprite y: {collide_with.rect.y}\n'
+                  f'Self x: {self.rect.x}\n'
+                  f'Self y: {self.rect.y}\n')
+
+            if isinstance(collide_with, list):
+                for sprite in collide_with:
+                    sprite_x = sprite.rect.x
+                    sprite_y = sprite.rect.y
+
+                    if sprite_x + sprite.rect.w > self.rect.x:
+                        left = False
+                    if sprite_x - sprite.rect.w < self.rect.x:
+                        right = False
+                    if sprite_y < self.rect.y:
+                        up = False
+                    if sprite_y > self.rect.y:
+                        down = False
+            else:
+                sprite_x = collide_with.rect.x
+                sprite_y = collide_with.rect.y
+                if sprite_x > self.rect.x:
+                    left = False
+                if sprite_x < self.rect.x:
+                    right = False
+                if sprite_y < self.rect.y:
+                    up = False
+                if sprite_y > self.rect.y:
+                    down = False
+
+        if up:
+            self.rect.y -= distance
+        if left:
+            self.rect.x += distance
+        if right:
+            self.rect.x -= distance
+        if down:
+            self.rect.y += distance
+
     def update(self):
         if self.rect.x == self.previous_x and self.rect.y == self.previous_y:
             if self.now_anim.startswith('ide'):
                 self.cur_frame = (self.cur_frame + 1) % len(self.ide_frames)
                 self.image = self.ide_frames[self.cur_frame]
             else:
+                self.now_anim = 'ide'
                 self.cur_frame = 0
                 self.image = self.ide_frames[self.cur_frame]
-        else:
-            if self.now_anim.startswith('run'):
-                self.cur_frame = (self.cur_frame + 1) % len(self.ide_frames)
-                self.image = self.ide_frames[self.cur_frame]
-            else:
-                self.now_anim = 'run'
-                self.cur_frame = 0
-                self.image = self.run_frames[self.cur_frame]
+        self.previous_x = self.rect.x
+        self.previous_y = self.rect.y

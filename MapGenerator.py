@@ -8,7 +8,6 @@ RIGHT = 1
 DOWN = 2
 LEFT = 3
 DIRECTIONS = [UP, RIGHT, DOWN, LEFT]
-# DIRECTIONS = [UP, DOWN]
 
 MAP_WIDTH = 7
 
@@ -53,19 +52,35 @@ class Room:
 
             while not verdict:
                 if direction == UP and self.row - 1 >= 0:
-                    verdict = True
+                    if direction not in doors_directions and \
+                            field.get_room(self.row - 1, self.column) == 'VD':
+                        verdict = True
+                    else:
+                        direction = random.choice(DIRECTIONS)
                 elif direction == RIGHT and self.column + 1 < MAP_WIDTH:
-                    verdict = True
+                    if direction not in doors_directions and \
+                            field.get_room(self.row, self.column + 1) == 'VD':
+                        verdict = True
+                    else:
+                        direction = random.choice(DIRECTIONS)
                 elif direction == DOWN and self.row + 1 < MAP_WIDTH:
-                    verdict = True
+                    if direction not in doors_directions and \
+                            field.get_room(self.row + 1, self.column) == 'VD':
+                        verdict = True
+                    else:
+                        direction = random.choice(DIRECTIONS)
                 elif direction == LEFT and self.column - 1 >= 0:
-                    verdict = True
+                    if direction not in doors_directions and \
+                            field.get_room(self.row, self.column + 1) == 'VD':
+                        verdict = True
+                    else:
+                        direction = random.choice(DIRECTIONS)
                 else:
                     direction = random.choice(DIRECTIONS)
 
             doors_directions.append(direction)
 
-        doors_count_to_end_room = self.doors_count - 2
+        doors_count_to_end_room = self.doors_count - 1
         for index in range(len(doors_directions)):
             if index == 0:
                 door = Door(doors_directions[index])
@@ -74,10 +89,10 @@ class Room:
             else:
                 door = Door(doors_directions[index])
                 if doors_count_to_end_room > 0:
-                    door.type = END_ROOM
+                    door.set_type(END_ROOM)
                     doors_count_to_end_room -= 1
                 else:
-                    door.type = MAIN_ROOM
+                    door.set_type(MAIN_ROOM)
                 self.doors.append(door)
 
     def __repr__(self):
@@ -112,6 +127,7 @@ class Field:
     def add_room(self, room) -> None:
         if 0 <= room.row < self.width and 0 <= room.column < self.width:
             self.field[room.row][room.column] = room
+            self.rooms.append(room)
 
     def get_room(self, row: int, column: int) -> Any:
         if 0 <= row < self.width and 0 <= column < self.width:
@@ -121,7 +137,7 @@ class Field:
 class MainRoom(Room):
 
     def __init__(self, row: int, column: int, previous_door, description=None):
-        super(MainRoom, self).__init__(random.randint(2, 4), row, column,
+        super(MainRoom, self).__init__(random.randint(2, 3), row, column,
                                        previous_door, description)
         self.previous_door = previous_door
         self.doors_generator()
@@ -153,32 +169,21 @@ class EndRoom(Room):
                 direction = RIGHT
                 verdict = True
 
-        while not verdict:
-            if direction == UP and self.row - 1 >= 0:
-                verdict = True
-            elif direction == RIGHT and self.column + 1 < MAP_WIDTH:
-                verdict = True
-            elif direction == DOWN and self.row + 1 < MAP_WIDTH:
-                verdict = True
-            elif direction == LEFT and self.column - 1 >= 0:
-                verdict = True
-            else:
-                direction = random.choice(DIRECTIONS)
-
         door = Door(direction)
         door.set_type(MAIN_ROOM)
         self.doors.append(door)
 
 
-def generate_field():
-    field = Field(MAP_WIDTH)
+field = Field(MAP_WIDTH)
 
+
+def generate_field():
     now_row = random.randint(3, field.width - 4)
     now_column = random.randint(3, field.width - 4)
 
     field.add_room(EndRoom(now_row, now_column, description='SR'))
 
-    for i in range(16):
+    for i in range(9):
         now_room = field.get_room(now_row, now_column)
 
         for door in now_room.doors:
@@ -222,3 +227,6 @@ def generate_field():
                     now_column -= 1
 
     return field
+
+
+# pprint(generate_field().field)

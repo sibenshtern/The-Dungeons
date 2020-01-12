@@ -33,12 +33,10 @@ def return_tiles():
             load_image('Tiles\\Floor', '1.png'),
             load_image('Tiles\\Floor', '2.png'),
             load_image('Tiles\\Floor', '3.png'),
-            load_image('Tiles\\Floor', '4.png'),
             load_image('Tiles\\Floor', '5.png'),
-            load_image('Tiles\\Floor', '6.png'),
         ],
         'animated': {
-            'image': load_image('Tiles\\Animated', 'spikes_anim.png'),
+            'spikes': load_image('Tiles\\Animated', 'spikes_anim.png'),
             'frames count': 4,
         }
     }

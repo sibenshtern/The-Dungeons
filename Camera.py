@@ -11,6 +11,6 @@ class Camera:
         obj.rect.x += self.x
         obj.rect.y += self.y
 
-    def updates(self, target):
+    def update(self, target):
         self.x = -(target.rect.x + target.rect.w // 2 - self.width // 2)
         self.y = -(target.rect.y + target.rect.h // 2 - self.height // 2)

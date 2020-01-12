@@ -1,22 +1,45 @@
 import os
 import sys
 import webbrowser
+from collections import namedtuple
 
 import pygame
 
 from Button import Button
+from Camera import Camera
+from Player import Player
+from Tile import Tile
+from AnimatedTile import AnimatedTile
 from Tiles import return_tiles
+
+from Functions import load_image
+from NewLevelGenerator1 import generate_level, field
 
 
 pygame.init()
 
-window_size = WINDOW_WIDTH, WINDOW_HEIGHT = 700, 500
+window_size = WINDOW_WIDTH, WINDOW_HEIGHT = 1280, 680
 screen = pygame.display.set_mode(window_size)
 clock = pygame.time.Clock()
+
+camera = Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
+floor = namedtuple('SecondTile', ['type', 'name'])('floor', 0)
+
+animated_sprites = pygame.sprite.Group()
 buttons_sprites = pygame.sprite.Group()
+player_sprites = pygame.sprite.Group()
+floor_sprites = pygame.sprite.Group()
+side_sprites = pygame.sprite.Group()
+all_sprites = pygame.sprite.Group()
+ui_sprites = pygame.sprite.Group()
+
 tiles = return_tiles()
+field_map = field
+player = None
 
 FPS = 60
+k = 19
+anim_index = 0
 running = True
 
 
@@ -26,7 +49,7 @@ def main_menu():
     :return: None
     """
 
-    screen.fill(pygame.Color('white'))
+    screen.fill(pygame.Color(29, 16, 70))
 
     # create header
     header = "The Dungeons"
@@ -49,7 +72,7 @@ def main_menu():
         button_y = 131 + (16 * (i + 1)) + 64 * i
 
         button = Button((button_center, button_y), buttons_sprites, screen,
-                        buttons[i], type=None, website=None)
+                        buttons[i], type=buttons[i].lower(), website=None)
         button_classes.append(button)
 
     button_center = WINDOW_WIDTH - 112
@@ -72,6 +95,9 @@ def main_menu():
                     if button.rect.collidepoint(menu_event.pos):
                         if button.button_type == 'open_website':
                             webbrowser.open('https://github.com/sibenshtern')
+                        if button.button_type == 'start game':
+                            load_map(field_map)
+                            return
 
         buttons_sprites.draw(screen)
         buttons_sprites.update()
@@ -82,12 +108,99 @@ def terminate():
     sys.exit(pygame.quit())
 
 
+def load_map(level_map):
+    global player
+
+    x, y = None, None
+    player_x, player_y = None, None
+    create_player = False
+
+    for column in range(len(level_map.field)):
+        for row in range(len(level_map.field[column])):
+            if not field.get_room(row, column) == 'VD':
+                level = generate_level(field.get_room(row, column))
+
+                for y in range(len(level)):
+                    for x in range(len(level[y])):
+                        if isinstance(level[y][x], list):
+                            for tile in level[y][x]:
+                                if "sides" in tile.type:
+                                    Tile(tile, tiles, all_sprites,
+                                         side_sprites, x + column * k,
+                                         y + row * k)
+                                elif "floor" in tile.type:
+                                    Tile(tile, tiles, all_sprites,
+                                         floor_sprites, x + column * k,
+                                         y + row * k)
+                        else:
+                            if level[y][x] == 'player':
+                                create_player = True
+                                player_x = x + column * k
+                                player_y = y + row * k
+                                Tile(floor, tiles, all_sprites,
+                                     floor_sprites, x + column * k,
+                                     y + row * k)
+                            else:
+                                if "sides" in level[y][x].type:
+                                    Tile(level[y][x], tiles, all_sprites,
+                                         side_sprites, x + column * k,
+                                         y + row * k)
+                                elif "floor" in level[y][x].type:
+                                    Tile(level[y][x], tiles, all_sprites,
+                                         floor_sprites, x + column * k,
+                                         y + row * k)
+                                elif "animated" in level[y][x].type:
+                                    print(level[y][x].type)
+                                    AnimatedTile(
+                                        tiles[level[y][x].type]
+                                        [level[y][x].name],
+                                        1, 4, x + column * k, y + row * k,
+                                        animated_sprites, all_sprites
+                                    )
+
+    if create_player:
+        player = Player(
+            load_image('images', 'idle_anim.png'),
+            load_image('images', 'run_anim.png'),
+            1, 4, player_x, player_y,
+            player_sprites, all_sprites
+        )
+
+
 main_menu()
 
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             terminate()
+
+    if pygame.key.get_pressed()[273] == 1:
+        # player.rect.y -= 5
+        player.move(2, side_sprites, up=True)
+    if pygame.key.get_pressed()[275] == 1:
+        # player.rect.x += 5
+        player.move(2, side_sprites, left=True)
+    if pygame.key.get_pressed()[276] == 1:
+        # player.rect.x -= 5
+        player.move(2, side_sprites, right=True)
+    if pygame.key.get_pressed()[274] == 1:
+        # player.rect.y += 5
+        player.move(2, side_sprites, down=True)
+
+    screen.fill(pygame.Color(29, 16, 70))
+
+    all_sprites.draw(screen)
+    camera.update(player)
+
+    for sprite in all_sprites:
+        camera.apply(sprite)
+
+    if anim_index % 6 == 0:
+        player_sprites.update()
+
+    if anim_index % 12 == 0:
+        animated_sprites.update()
+    anim_index += 1
 
     clock.tick(FPS)
     pygame.display.flip()
