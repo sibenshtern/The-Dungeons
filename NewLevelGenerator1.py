@@ -110,7 +110,5 @@ def generate_level(room):
             if isinstance(level[x][y], Tile):
                 if level[x][y].type == 'floor':
                     level[x][y] = tiles['animated'][0]
-                    print(level[x][y])
-
 
     return level

@@ -5,12 +5,14 @@ from collections import namedtuple
 
 import pygame
 
+import UI
+from Tile import Tile
 from Button import Button
 from Camera import Camera
 from Player import Player
-from Tile import Tile
-from AnimatedTile import AnimatedTile
 from Tiles import return_tiles
+from AnimatedTile import AnimatedTile
+
 
 from Functions import load_image
 from NewLevelGenerator1 import generate_level, field
@@ -39,7 +41,6 @@ player = None
 
 FPS = 60
 k = 19
-anim_index = 0
 running = True
 
 
@@ -64,7 +65,7 @@ def main_menu():
     screen.blit(rendered_header, header_rect)
 
     # create buttons
-    buttons = ['Start Game', 'Record Table', 'Settings']
+    buttons = ['Start Game', 'Settings']
     button_classes = []
 
     for i in range(len(buttons)):
@@ -96,11 +97,72 @@ def main_menu():
                         if button.button_type == 'open_website':
                             webbrowser.open('https://github.com/sibenshtern')
                         if button.button_type == 'start game':
-                            load_map(field_map)
+                            start_game()
                             return
 
         buttons_sprites.draw(screen)
         buttons_sprites.update()
+        pygame.display.flip()
+
+
+def start_game():
+    load_map(field_map)
+
+    anim_index = 0
+
+    for i in range(10):
+        UI.Heart((32 + i * 24, 32), ui_sprites)
+
+    pygame.mixer.music.load(os.path.join('data', 'soundtrack1.mp3'))
+    pygame.mixer.music.play(10)
+    pygame.mixer.music.set_volume(0.009)
+
+    while True:
+        for game_event in pygame.event.get():
+            if game_event.type == pygame.QUIT:
+                terminate()
+
+        if pygame.key.get_pressed()[273] == 1:
+            # player.rect.y -= 5
+            player.move(2, side_sprites, up=True)
+        if pygame.key.get_pressed()[275] == 1:
+            # player.rect.x += 5
+            player.move(2, side_sprites, left=True)
+        if pygame.key.get_pressed()[276] == 1:
+            # player.rect.x -= 5
+            player.move(2, side_sprites, right=True)
+        if pygame.key.get_pressed()[274] == 1:
+            # player.rect.y += 5
+            player.move(2, side_sprites, down=True)
+
+        screen.fill(pygame.Color(29, 16, 70))
+
+        all_sprites.draw(screen)
+        ui_sprites.draw(screen)
+        camera.update(player)
+
+        for sprite in all_sprites:
+            camera.apply(sprite)
+
+        if anim_index % 6 == 0:
+            player_sprites.update()
+
+        if anim_index % 24 == 0:
+            animated_sprites.update()
+
+        health = player.health
+        for sprite in ui_sprites:
+            if not health - 2 >= 0:
+                if health - 2 == -1:
+                    sprite.image = sprite.half_heart
+                elif health - 2 <= -2:
+                    sprite.image = sprite.empty_heart
+
+            health -= 2
+
+        anim_index += 1
+
+        clock.tick(FPS)
         pygame.display.flip()
 
 
@@ -150,7 +212,6 @@ def load_map(level_map):
                                          floor_sprites, x + column * k,
                                          y + row * k)
                                 elif "animated" in level[y][x].type:
-                                    print(level[y][x].type)
                                     AnimatedTile(
                                         tiles[level[y][x].type]
                                         [level[y][x].name],
@@ -163,7 +224,7 @@ def load_map(level_map):
             load_image('images', 'idle_anim.png'),
             load_image('images', 'run_anim.png'),
             1, 4, player_x, player_y,
-            player_sprites, all_sprites
+            player_sprites, all_sprites, animated_sprites
         )
 
 
@@ -173,34 +234,6 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             terminate()
-
-    if pygame.key.get_pressed()[273] == 1:
-        # player.rect.y -= 5
-        player.move(2, side_sprites, up=True)
-    if pygame.key.get_pressed()[275] == 1:
-        # player.rect.x += 5
-        player.move(2, side_sprites, left=True)
-    if pygame.key.get_pressed()[276] == 1:
-        # player.rect.x -= 5
-        player.move(2, side_sprites, right=True)
-    if pygame.key.get_pressed()[274] == 1:
-        # player.rect.y += 5
-        player.move(2, side_sprites, down=True)
-
-    screen.fill(pygame.Color(29, 16, 70))
-
-    all_sprites.draw(screen)
-    camera.update(player)
-
-    for sprite in all_sprites:
-        camera.apply(sprite)
-
-    if anim_index % 6 == 0:
-        player_sprites.update()
-
-    if anim_index % 12 == 0:
-        animated_sprites.update()
-    anim_index += 1
 
     clock.tick(FPS)
     pygame.display.flip()
