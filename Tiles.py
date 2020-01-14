@@ -37,7 +37,10 @@ def return_tiles():
         ],
         'animated': {
             'spikes': load_image('Tiles\\Animated', 'spikes_anim.png'),
-            'frames count': 4,
+            'portal': load_image('Tiles\\Animated', 'portal.png')
+        },
+        'enemy': {
+            'wogol': load_image('images', 'wogol_idle_anim.png')
         }
     }
 

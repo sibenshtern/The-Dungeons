@@ -3,8 +3,8 @@ import pygame
 
 class Player(pygame.sprite.Sprite):
 
-    def __init__(self, ide_sheet, run_sheet,
-                 rows, columns, x, y, player_group, all_sprites, animated):
+    def __init__(self, ide_sheet, run_sheet, x, y,
+                 rows, columns, player_group, all_sprites, animated):
         super(Player, self).__init__(player_group, all_sprites)
         self.ide_frames = []
         self.run_frames = []
@@ -12,18 +12,21 @@ class Player(pygame.sprite.Sprite):
         self.cut_sheet(run_sheet, rows, columns, self.run_frames)
         self.cur_frame = 0
         self.image = self.ide_frames[self.cur_frame]
-        self.rect = self.rect.move(16 * x, 16 * y)
         self.mask = pygame.mask.from_surface(self.image)
         self.now_anim = 'ide'
+        self.set_coordinates(x, y)
 
-        self.previous_x = x
-        self.previous_y = y
+        self.previous_x = 0
+        self.previous_y = 0
 
         self.health = 20
 
         self.animated = animated
 
         self.die = False
+
+    def set_coordinates(self, x, y):
+        self.rect = self.rect.move(16 * x, 16 * y)
 
     def cut_sheet(self, sheet, rows, columns, array):
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
@@ -62,7 +65,7 @@ class Player(pygame.sprite.Sprite):
                 self.rect.y += distance
 
     def update(self):
-        if self.rect.x == self.previous_x and self.rect.y == self.previous_y:
+        if not self.die:
             if self.now_anim.startswith('ide'):
                 self.cur_frame = (self.cur_frame + 1) % len(self.ide_frames)
                 self.image = self.ide_frames[self.cur_frame]
@@ -72,11 +75,12 @@ class Player(pygame.sprite.Sprite):
                 self.image = self.ide_frames[self.cur_frame]
             self.mask = pygame.mask.from_surface(self.image)
 
-        self.previous_x = self.rect.x
-        self.previous_y = self.rect.y
+            self.previous_x = self.rect.x
+            self.previous_y = self.rect.y
 
-        for sprite in self.animated:
-            if pygame.sprite.collide_mask(self, sprite):
-                self.health -= 1
-                if self.health <= 0:
-                    self.die = True
+            for sprite in self.animated:
+                if pygame.sprite.collide_mask(self, sprite) and \
+                        sprite.cur_frame > 1:
+                    self.health -= 1
+                    if self.health <= 0:
+                        self.die = True

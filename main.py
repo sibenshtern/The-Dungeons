@@ -7,6 +7,7 @@ import pygame
 
 import UI
 from Tile import Tile
+from Enemy import Enemy
 from Button import Button
 from Camera import Camera
 from Player import Player
@@ -30,6 +31,7 @@ floor = namedtuple('SecondTile', ['type', 'name'])('floor', 0)
 animated_sprites = pygame.sprite.Group()
 buttons_sprites = pygame.sprite.Group()
 player_sprites = pygame.sprite.Group()
+enemy_sprites = pygame.sprite.Group()
 floor_sprites = pygame.sprite.Group()
 side_sprites = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
@@ -37,10 +39,10 @@ ui_sprites = pygame.sprite.Group()
 
 tiles = return_tiles()
 field_map = field
-player = None
+
 
 FPS = 60
-k = 19
+k = 20
 running = True
 
 
@@ -65,7 +67,7 @@ def main_menu():
     screen.blit(rendered_header, header_rect)
 
     # create buttons
-    buttons = ['Start Game', 'Settings']
+    buttons = ['Start Game']
     button_classes = []
 
     for i in range(len(buttons)):
@@ -106,7 +108,13 @@ def main_menu():
 
 
 def start_game():
-    load_map(field_map)
+    player_x, player_y = load_map(field_map)
+
+    player = Player(
+        load_image('images', 'idle_anim.png'),
+        load_image('images', 'run_anim.png'), player_x, player_y, 1, 4,
+        player_sprites, all_sprites, animated_sprites
+    )
 
     anim_index = 0
 
@@ -146,9 +154,13 @@ def start_game():
 
         if anim_index % 6 == 0:
             player_sprites.update()
+            enemy_sprites.update(player)
 
         if anim_index % 24 == 0:
             animated_sprites.update()
+
+        if anim_index % 32 == 0:
+            pass
 
         health = player.health
         for sprite in ui_sprites:
@@ -171,8 +183,6 @@ def terminate():
 
 
 def load_map(level_map):
-    global player
-
     x, y = None, None
     player_x, player_y = None, None
     create_player = False
@@ -196,7 +206,6 @@ def load_map(level_map):
                                          y + row * k)
                         else:
                             if level[y][x] == 'player':
-                                create_player = True
                                 player_x = x + column * k
                                 player_y = y + row * k
                                 Tile(floor, tiles, all_sprites,
@@ -212,20 +221,14 @@ def load_map(level_map):
                                          floor_sprites, x + column * k,
                                          y + row * k)
                                 elif "animated" in level[y][x].type:
-                                    AnimatedTile(
-                                        tiles[level[y][x].type]
-                                        [level[y][x].name],
-                                        1, 4, x + column * k, y + row * k,
-                                        animated_sprites, all_sprites
-                                    )
-
-    if create_player:
-        player = Player(
-            load_image('images', 'idle_anim.png'),
-            load_image('images', 'run_anim.png'),
-            1, 4, player_x, player_y,
-            player_sprites, all_sprites, animated_sprites
-        )
+                                    if level[y][x].name == 'spikes':
+                                        AnimatedTile(
+                                            tiles[level[y][x].type]
+                                            [level[y][x].name],
+                                            1, 4, x + column * k, y + row * k,
+                                            animated_sprites, all_sprites
+                                        )
+    return player_x, player_y
 
 
 main_menu()

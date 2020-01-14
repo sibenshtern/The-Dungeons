@@ -1,4 +1,8 @@
 import pygame
+import tracemalloc
+
+
+tracemalloc.start()
 
 
 class AnimatedTile(pygame.sprite.Sprite):
@@ -28,3 +32,5 @@ class AnimatedTile(pygame.sprite.Sprite):
         self.cur_frame = (self.cur_frame + 1) % len(self.frames)
         self.image = self.frames[self.cur_frame]
         self.mask = pygame.mask.from_surface(self.image)
+
+        return self.cur_frame

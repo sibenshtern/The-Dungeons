@@ -102,7 +102,7 @@ def generate_level(room):
     if room.description == 'SR':
         level[randint(3, 7)][randint(3, 7)] = 'player'
 
-    if not room.description == 'SR':
+    if room.description not in ['SR', 'PR']:
         for _ in range(7):
             x = randint(4, 14)
             y = randint(4, 14)

@@ -81,6 +81,7 @@ class Room:
             doors_directions.append(direction)
 
         doors_count_to_end_room = self.doors_count - 1
+
         for index in range(len(doors_directions)):
             if index == 0:
                 door = Door(doors_directions[index])
@@ -94,6 +95,7 @@ class Room:
                 else:
                     door.set_type(MAIN_ROOM)
                 self.doors.append(door)
+
 
     def __repr__(self):
         if self.description is not None:
@@ -181,6 +183,9 @@ def generate_field():
     now_row = random.randint(3, field.width - 4)
     now_column = random.randint(3, field.width - 4)
 
+    sx = now_row
+    sy = now_column
+
     field.add_room(EndRoom(now_row, now_column, description='SR'))
 
     for i in range(9):
@@ -226,7 +231,26 @@ def generate_field():
                         MainRoom(now_row, now_column - 1, door, 'MR'))
                     now_column -= 1
 
+    k = 0
+    need_x = 0
+    need_y = 0
+    verdict = False
+
+    for row in range(len(field.field)):
+        for column in range(len(field.field[row])):
+            if isinstance(field.get_room(row, column), EndRoom):
+                x = abs(row - sx)
+                y = abs(column - sy)
+                if (x + y) ** 2 > k:
+                    k = (x + y) ** 2
+                    need_x = row
+                    need_y = column
+                    verdict = True
+
+    if verdict:
+        field.field[need_x][need_y].description = 'PR'
+
     return field
 
 
-# pprint(generate_field().field)
+pprint(generate_field().field)
