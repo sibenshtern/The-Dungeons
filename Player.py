@@ -3,13 +3,11 @@ import pygame
 
 class Player(pygame.sprite.Sprite):
 
-    def __init__(self, ide_sheet, run_sheet, x, y,
-                 rows, columns, player_group, all_sprites, animated):
+    def __init__(self, ide_sheet, x, y, rows, columns, player_group,
+                 all_sprites, animated):
         super(Player, self).__init__(player_group, all_sprites)
         self.ide_frames = []
-        self.run_frames = []
         self.cut_sheet(ide_sheet, rows, columns, self.ide_frames)
-        self.cut_sheet(run_sheet, rows, columns, self.run_frames)
         self.cur_frame = 0
         self.image = self.ide_frames[self.cur_frame]
         self.mask = pygame.mask.from_surface(self.image)

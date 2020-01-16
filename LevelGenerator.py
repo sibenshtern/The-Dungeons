@@ -4,7 +4,6 @@ from random import choice, randint
 
 from musc3 import Field, generate_field
 
-field: Field = generate_field()
 Cell = namedtuple('Cell', ['sprites'])
 Tile = namedtuple('Tile', ['type', 'name'])
 
@@ -115,6 +114,3 @@ def generate_level(room):
                     level[x][y] = tiles['animated'][0]
 
     return level
-
-
-

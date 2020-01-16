@@ -1,26 +1,26 @@
 from __future__ import annotations
 from pprint import pprint
-from typing import Any
+from typing import Union
 import random
 
-UP = 0
-RIGHT = 1
-DOWN = 2
-LEFT = 3
+UP = 'up'
+RIGHT = 'right'
+DOWN = 'down'
+LEFT = 'left'
 DIRECTIONS = [UP, RIGHT, DOWN, LEFT]
 
 MAP_WIDTH = 7
 
-PREVIOUS_ROOM = 9
-END_ROOM = 10
-MAIN_ROOM = 11
+PREVIOUS_ROOM = 'previous_room'
+END_ROOM = 'end_room'
+MAIN_ROOM = 'main_room'
 DOOR_TYPES = [END_ROOM, MAIN_ROOM]
 
 
 class Room:
 
-    def __init__(self, doors_count: int, row: int, column: int,
-                 previous_door=None, description=None):
+    def __init__(self, doors_count: int, row: int, column: int, field: Field,
+                 description, previous_door):
         self.doors = []
 
         self.row = row
@@ -28,60 +28,100 @@ class Room:
         self.doors_count = doors_count
 
         self.description = description
-        self.previous_door = previous_door
+        self.previous_door: Door = previous_door
 
-    def add_door(self, door: Door) -> None:
-        self.doors.append(door)
+        self.field: Field = field
 
-    def doors_generator(self):
+    def get_row(self) -> int:
+        return self.row
+
+    def get_column(self) -> int:
+        return self.column
+
+    def get_doors(self) -> list:
+        return self.doors
+
+    def get_doors_count(self) -> int:
+        return self.doors_count
+
+    def get_description(self) -> str:
+        return self.description
+
+    def get_previous_door(self) -> Door:
+        return self.previous_door
+
+    def set_description(self, description):
+        self.description = description
+
+    def generate_doors(self):
         doors_directions = []
 
-        if self.previous_door is not None:
-            if self.previous_door.direction == UP:
+        if self.get_previous_door() is not None:
+            previous_door = self.get_previous_door()
+
+            if previous_door.get_direction() == UP:
                 doors_directions.append(DOWN)
-            elif self.previous_door.direction == RIGHT:
+            elif previous_door.get_direction() == RIGHT:
                 doors_directions.append(LEFT)
-            elif self.previous_door.direction == DOWN:
+            elif previous_door.get_direction() == DOWN:
                 doors_directions.append(UP)
-            elif self.previous_door.direction == LEFT:
+            elif previous_door.get_direction() == LEFT:
                 doors_directions.append(RIGHT)
 
         for _ in range(self.doors_count - 1):
             verdict = False
             direction = random.choice(DIRECTIONS)
 
+            count = 0
             while not verdict:
-                if direction == UP and self.row - 1 >= 0:
+                if direction == UP and self.get_row() - 1 >= 0:
                     if direction not in doors_directions and \
-                            field.get_room(self.row - 1, self.column) == 'VD':
+                            self.field.check(
+                                self.get_row() - 1,
+                                self.get_column()
+                            ):
                         verdict = True
                     else:
                         direction = random.choice(DIRECTIONS)
                 elif direction == RIGHT and self.column + 1 < MAP_WIDTH:
                     if direction not in doors_directions and \
-                            field.get_room(self.row, self.column + 1) == 'VD':
+                            self.field.check(
+                                self.get_row(),
+                                self.get_column() + 1
+                            ):
                         verdict = True
                     else:
                         direction = random.choice(DIRECTIONS)
                 elif direction == DOWN and self.row + 1 < MAP_WIDTH:
                     if direction not in doors_directions and \
-                            field.get_room(self.row + 1, self.column) == 'VD':
+                            self.field.check(
+                                self.get_row(),
+                                self.get_column()
+                            ):
                         verdict = True
                     else:
                         direction = random.choice(DIRECTIONS)
                 elif direction == LEFT and self.column - 1 >= 0:
                     if direction not in doors_directions and \
-                            field.get_room(self.row, self.column + 1) == 'VD':
+                            self.field.check(
+                                self.get_row(),
+                                self.get_column()
+                            ):
                         verdict = True
                     else:
                         direction = random.choice(DIRECTIONS)
-                else:
-                    direction = random.choice(DIRECTIONS)
 
-            doors_directions.append(direction)
+                if count > 999:
+                    verdict = False
+                    break
+                count += 1
 
-        doors_count_to_end_room = self.doors_count - 1
+            if verdict:
+                doors_directions.append(direction)
 
+        self.doors_count = len(doors_directions)
+
+        doors_count_to_end_room = self.get_doors_count() - random.randint(1, 2)
         for index in range(len(doors_directions)):
             if index == 0:
                 door = Door(doors_directions[index])
@@ -96,25 +136,64 @@ class Room:
                     door.set_type(MAIN_ROOM)
                 self.doors.append(door)
 
-
     def __repr__(self):
-        if self.description is not None:
-            return f"'{self.description}'"
+        return f"'{self.description}'"
 
     def __str__(self):
-        if self.description is not None:
-            return self.description
+        return f"'{self.description}'"
+
+
+class MainRoom(Room):
+
+    def __init__(self, row: int, column: int, field: Field, previous_door):
+        super(MainRoom, self).__init__(random.randint(2, 4), row, column, field,
+                                       'MR', previous_door)
+        self.generate_doors()
+
+
+class EndRoom(Room):
+
+    def __init__(self, row: int, column: int, field: Field, description,
+                 previous_door: Union[None, Door] = None):
+        super(EndRoom, self).__init__(1, row, column, field, description,
+                                      previous_door)
+        self.generate_doors()
+
+    def generate_doors(self):
+        direction = random.choice(DIRECTIONS)
+
+        if self.previous_door is not None:
+            if self.previous_door.get_direction() == UP:
+                direction = DOWN
+            elif self.previous_door.get_direction() == RIGHT:
+                direction = LEFT
+            elif self.previous_door.get_direction() == DOWN:
+                direction = UP
+            elif self.previous_door.get_direction() == LEFT:
+                direction = RIGHT
+
+            door = Door(direction)
+            door.set_type(PREVIOUS_ROOM)
+            self.doors.append(door)
         else:
-            return self.__name__
+            door = Door(random.choice(DIRECTIONS))
+            door.set_type(MAIN_ROOM)
+            self.doors.append(door)
 
 
 class Door:
 
-    def __init__(self, direction: int):
+    def __init__(self, direction: str):
         self.direction = direction
         self.type = None
 
-    def set_type(self, door_type):
+    def get_direction(self) -> str:
+        return self.direction
+
+    def get_type(self) -> Union[None, str]:
+        return self.type
+
+    def set_type(self, door_type) -> None:
         self.type = door_type
 
 
@@ -126,112 +205,76 @@ class Field:
 
         self.field = [['VD'] * self.width for _ in range(self.width)]
 
-    def add_room(self, room) -> None:
-        if 0 <= room.row < self.width and 0 <= room.column < self.width:
-            self.field[room.row][room.column] = room
-            self.rooms.append(room)
-
-    def get_room(self, row: int, column: int) -> Any:
-        if 0 <= row < self.width and 0 <= column < self.width:
+    def get_room(self, row, column) -> Union[Room, str]:
+        if self.in_range(row, column):
             return self.field[row][column]
 
+    def get_rooms(self) -> list:
+        return self.rooms
 
-class MainRoom(Room):
+    def get_width(self) -> int:
+        return self.width
 
-    def __init__(self, row: int, column: int, previous_door, description=None):
-        super(MainRoom, self).__init__(random.randint(2, 3), row, column,
-                                       previous_door, description)
-        self.previous_door = previous_door
-        self.doors_generator()
+    def get_field(self) -> list:
+        return self.field
 
+    def add_room(self, room: Room) -> None:
+        if self.in_range(room.get_row(), room.get_column()):
+            self.field[room.get_row()][room.get_column()] = room
+            self.rooms.append(room)
 
-class EndRoom(Room):
+    def in_range(self, row, column):
+        return 0 <= row < self.width and 0 <= column < self.width
 
-    def __init__(self, row: int, column: int, previous_door=None,
-                 description=None):
-        super(EndRoom, self).__init__(1, row, column, previous_door,
-                                      description)
-        self.doors_generator()
-
-    def doors_generator(self):
-        verdict = False
-        direction = random.choice(DIRECTIONS)
-
-        if self.previous_door is not None:
-            if self.previous_door.direction == UP:
-                direction = DOWN
-                verdict = True
-            elif self.previous_door.direction == RIGHT:
-                direction = LEFT
-                verdict = True
-            elif self.previous_door.direction == DOWN:
-                direction = UP
-                verdict = True
-            elif self.previous_door.direction == LEFT:
-                direction = RIGHT
-                verdict = True
-
-        door = Door(direction)
-        door.set_type(MAIN_ROOM)
-        self.doors.append(door)
-
-
-field = Field(MAP_WIDTH)
+    def check(self, row, column):
+        return self.get_room(row, column) == 'VD'
 
 
 def generate_field():
-    now_row = random.randint(3, field.width - 4)
-    now_column = random.randint(3, field.width - 4)
+    field = Field(MAP_WIDTH)
+    row = random.randint(3, 4)
+    column = random.randint(3, 4)
 
-    sx = now_row
-    sy = now_column
+    sx = row
+    sy = column
 
-    field.add_room(EndRoom(now_row, now_column, description='SR'))
+    field.add_room(EndRoom(row, column, field, 'SR'))
 
-    for i in range(9):
-        now_room = field.get_room(now_row, now_column)
+    for i in range(20):
+        room = field.get_room(row, column)
 
-        for door in now_room.doors:
-            if door.type == END_ROOM:
-                if door.direction == UP and \
-                        field.get_room(now_row - 1, now_column) == 'VD':
-                    field.add_room(
-                        EndRoom(now_row - 1, now_column, door, 'ER'))
-                elif door.direction == RIGHT and \
-                        field.get_room(now_row, now_column + 1) == 'VD':
-                    field.add_room(
-                        EndRoom(now_row, now_column + 1, door, 'ER'))
-                elif door.direction == DOWN and \
-                        field.get_room(now_row + 1, now_column) == 'VD':
-                    field.add_room(
-                        EndRoom(now_row + 1, now_column, door, 'ER'))
-                elif door.direction == LEFT and \
-                        field.get_room(now_row, now_column + 1) == 'VD':
-                    field.add_room(
-                        EndRoom(now_row, now_column - 1, door, 'ER'))
-            elif door.type == MAIN_ROOM:
-                if door.direction == UP and \
-                        field.get_room(now_row - 1, now_column) == 'VD':
-                    field.add_room(
-                        MainRoom(now_row - 1, now_column, door, 'MR'))
-                    now_row -= 1
-                elif door.direction == RIGHT and \
-                        field.get_room(now_row, now_column + 1) == 'VD':
-                    field.add_room(
-                        MainRoom(now_row, now_column + 1, door, 'MR'))
-                    now_column += 1
-                elif door.direction == DOWN and \
-                        field.get_room(now_row + 1, now_column) == 'VD':
-                    field.add_room(
-                        MainRoom(now_row + 1, now_column, door, 'MR'))
-                    now_row += 1
-                elif door.direction == LEFT and \
-                        field.get_room(now_row, now_column - 1) == 'VD':
-                    field.add_room(
-                        MainRoom(now_row, now_column - 1, door, 'MR'))
-                    now_column -= 1
+        door: Door
+        for door in room.get_doors():
+            if door.get_type() == END_ROOM:
+                if door.get_direction() == UP and field.check(row - 1, column):
+                    field.add_room(EndRoom(row - 1, column, field, 'ER', door))
+                elif door.get_direction() == RIGHT and field.check(row,
+                                                                   column + 1):
+                    field.add_room(EndRoom(row, column + 1, field, 'ER', door))
+                elif door.get_direction() == DOWN and field.check(row + 1,
+                                                                  column):
+                    field.add_room(EndRoom(row + 1, column, field, 'ER', door))
+                elif door.get_direction() == LEFT and field.check(row,
+                                                                  column - 1):
+                    field.add_room(EndRoom(row, column - 1, field, 'ER', door))
+            elif door.get_type() == MAIN_ROOM:
+                if door.get_direction() == UP and field.check(row - 1, column):
+                    field.add_room(MainRoom(row - 1, column, field, door))
+                    row -= 1
+                elif door.get_direction() == RIGHT and field.check(row,
+                                                                   column + 1):
+                    field.add_room(MainRoom(row, column + 1, field, door))
+                    column += 1
+                elif door.get_direction() == DOWN and field.check(row + 1,
+                                                                  column):
+                    field.add_room(MainRoom(row + 1, column, field, door))
+                    row += 1
+                elif door.get_direction() == LEFT and field.check(row,
+                                                                  column - 1):
+                    field.add_room(MainRoom(row, column - 1, field, door))
+                    column -= 1
 
-    k = 0
+    k = -1
     need_x = 0
     need_y = 0
     verdict = False
@@ -253,4 +296,10 @@ def generate_field():
     return field
 
 
-pprint(generate_field().field)
+if __name__ == '__main__':
+    new_field = generate_field()
+    print_field = new_field.field
+    rooms = new_field.get_rooms()
+    pprint(new_field)
+    pprint(print_field)
+    pprint(rooms)

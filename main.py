@@ -14,10 +14,8 @@ from Player import Player
 from Tiles import return_tiles
 from AnimatedTile import AnimatedTile
 
-
 from Functions import load_image
 from NewLevelGenerator1 import generate_level, field
-
 
 pygame.init()
 
@@ -40,9 +38,8 @@ ui_sprites = pygame.sprite.Group()
 tiles = return_tiles()
 field_map = field
 
-
 FPS = 60
-k = 20
+k = 19
 running = True
 
 
@@ -67,12 +64,12 @@ def main_menu():
     screen.blit(rendered_header, header_rect)
 
     # create buttons
-    buttons = ['Start Game']
+    buttons = ['Start Game', 'Record table']
     button_classes = []
 
     for i in range(len(buttons)):
         button_center = WINDOW_WIDTH // 2
-        button_y = 131 + (16 * (i + 1)) + 64 * i
+        button_y = 269 + (16 * (i + 1)) + 64 * i
 
         button = Button((button_center, button_y), buttons_sprites, screen,
                         buttons[i], type=buttons[i].lower(), website=None)
@@ -111,8 +108,7 @@ def start_game():
     player_x, player_y = load_map(field_map)
 
     player = Player(
-        load_image('images', 'idle_anim.png'),
-        load_image('images', 'run_anim.png'), player_x, player_y, 1, 4,
+        load_image('images', 'idle_anim.png'), player_x, player_y, 1, 4,
         player_sprites, all_sprites, animated_sprites
     )
 
@@ -132,16 +128,16 @@ def start_game():
 
         if pygame.key.get_pressed()[273] == 1:
             # player.rect.y -= 5
-            player.move(2, side_sprites, up=True)
+            player.move(5, side_sprites, up=True)
         if pygame.key.get_pressed()[275] == 1:
             # player.rect.x += 5
-            player.move(2, side_sprites, left=True)
+            player.move(5, side_sprites, left=True)
         if pygame.key.get_pressed()[276] == 1:
             # player.rect.x -= 5
-            player.move(2, side_sprites, right=True)
+            player.move(5, side_sprites, right=True)
         if pygame.key.get_pressed()[274] == 1:
             # player.rect.y += 5
-            player.move(2, side_sprites, down=True)
+            player.move(5, side_sprites, down=True)
 
         screen.fill(pygame.Color(29, 16, 70))
 
@@ -187,47 +183,50 @@ def load_map(level_map):
     player_x, player_y = None, None
     create_player = False
 
-    for column in range(len(level_map.field)):
-        for row in range(len(level_map.field[column])):
-            if not field.get_room(row, column) == 'VD':
-                level = generate_level(field.get_room(row, column))
+    print(field.get_rooms())
 
-                for y in range(len(level)):
-                    for x in range(len(level[y])):
-                        if isinstance(level[y][x], list):
-                            for tile in level[y][x]:
-                                if "sides" in tile.type:
-                                    Tile(tile, tiles, all_sprites,
-                                         side_sprites, x + column * k,
-                                         y + row * k)
-                                elif "floor" in tile.type:
-                                    Tile(tile, tiles, all_sprites,
-                                         floor_sprites, x + column * k,
-                                         y + row * k)
-                        else:
-                            if level[y][x] == 'player':
-                                player_x = x + column * k
-                                player_y = y + row * k
-                                Tile(floor, tiles, all_sprites,
-                                     floor_sprites, x + column * k,
-                                     y + row * k)
-                            else:
-                                if "sides" in level[y][x].type:
-                                    Tile(level[y][x], tiles, all_sprites,
-                                         side_sprites, x + column * k,
-                                         y + row * k)
-                                elif "floor" in level[y][x].type:
-                                    Tile(level[y][x], tiles, all_sprites,
-                                         floor_sprites, x + column * k,
-                                         y + row * k)
-                                elif "animated" in level[y][x].type:
-                                    if level[y][x].name == 'spikes':
-                                        AnimatedTile(
-                                            tiles[level[y][x].type]
-                                            [level[y][x].name],
-                                            1, 4, x + column * k, y + row * k,
-                                            animated_sprites, all_sprites
-                                        )
+    for room in field.get_rooms():
+        row = room.get_row()
+        column = room.get_column()
+
+        level = generate_level(room)
+
+        for y in range(len(level)):
+            for x in range(len(level[y])):
+                if isinstance(level[y][x], list):
+                    for tile in level[y][x]:
+                        if "sides" in tile.type:
+                            Tile(tile, tiles, all_sprites,
+                                 side_sprites, x + column * k,
+                                 y + row * k)
+                        elif "floor" in tile.type:
+                            Tile(tile, tiles, all_sprites,
+                                 floor_sprites, x + column * k,
+                                 y + row * k)
+                else:
+                    if level[y][x] == 'player':
+                        player_x = x + column * k
+                        player_y = y + row * k
+                        Tile(floor, tiles, all_sprites,
+                             floor_sprites, x + column * k,
+                             y + row * k)
+                    else:
+                        if "sides" in level[y][x].type:
+                            Tile(level[y][x], tiles, all_sprites,
+                                 side_sprites, x + column * k,
+                                 y + row * k)
+                        elif "floor" in level[y][x].type:
+                            Tile(level[y][x], tiles, all_sprites,
+                                 floor_sprites, x + column * k,
+                                 y + row * k)
+                        elif "animated" in level[y][x].type:
+                            if level[y][x].name == 'spikes':
+                                AnimatedTile(
+                                    tiles[level[y][x].type]
+                                    [level[y][x].name],
+                                    1, 4, x + column * k, y + row * k,
+                                    animated_sprites, all_sprites
+                                )
     return player_x, player_y
 
 
