@@ -4,7 +4,7 @@ import pygame
 class Player(pygame.sprite.Sprite):
 
     def __init__(self, ide_sheet, x, y, rows, columns, player_group,
-                 all_sprites, animated):
+                 all_sprites, animated, health, score):
         super(Player, self).__init__(player_group, all_sprites)
         self.ide_frames = []
         self.cut_sheet(ide_sheet, rows, columns, self.ide_frames)
@@ -17,11 +17,13 @@ class Player(pygame.sprite.Sprite):
         self.previous_x = 0
         self.previous_y = 0
 
-        self.health = 20
+        self.health = health
+        self.score = score
 
         self.animated = animated
 
         self.die = False
+        self.next_level = False  # КОСТЫЛЬ КОСТЫЛЬНЫЙ
 
     def set_coordinates(self, x, y):
         self.rect = self.rect.move(16 * x, 16 * y)
