@@ -2,7 +2,7 @@ from __future__ import annotations
 from collections import namedtuple
 from random import choice, randint
 
-from musc3 import Field, generate_field
+from MapGenerator import Field, generate_field
 
 Cell = namedtuple('Cell', ['sprites'])
 Tile = namedtuple('Tile', ['type', 'name'])

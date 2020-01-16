@@ -2,7 +2,7 @@ env
 .git
 .idea
 __pycache__
-
+text*
 musc*
 0x72_DungeonTilesetII_v1.3
 

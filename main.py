@@ -190,13 +190,13 @@ def start_game():
                 terminate()
 
         if pygame.key.get_pressed()[pygame.K_UP] == 1:
-            player.move(5, side_sprites, up=True)
+            player.move(3, side_sprites, up=True)
         if pygame.key.get_pressed()[pygame.K_RIGHT] == 1:
-            player.move(5, side_sprites, left=True)
+            player.move(3, side_sprites, left=True)
         if pygame.key.get_pressed()[pygame.K_LEFT] == 1:
-            player.move(5, side_sprites, right=True)
+            player.move(3, side_sprites, right=True)
         if pygame.key.get_pressed()[pygame.K_DOWN] == 1:
-            player.move(5, side_sprites, down=True)
+            player.move(3, side_sprites, down=True)
 
         screen.fill(pygame.Color(29, 16, 70))
 
