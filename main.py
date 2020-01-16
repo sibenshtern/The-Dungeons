@@ -169,7 +169,7 @@ def load_map(field):
                                     )
                                 elif 'enemy' in level[y][x].type:
                                     enemies_coordinates.append(
-                                        (x + column * k, y + row * k)
+                                        (x + (column * k), y + (row * k))
                                     )
                                     Tile.Tile(
                                         floor, tiles, all_sprites,
@@ -179,7 +179,7 @@ def load_map(field):
 
     for enemy_x, enemy_y in enemies_coordinates:
         Enemy.Enemy(
-            tiles['enemy']['wogol'], 1, 4, enemy_x, enemy_x,
+            tiles['enemy']['enemy'], enemy_x, enemy_y,
             enemy_sprites, all_sprites
         )
 
@@ -228,10 +228,10 @@ def start_game():
 
         if anim_index % 6 == 0:
             player_sprites.update()
+            enemy_sprites.update(player)
 
         if anim_index % 24 == 0:
             animated_sprites.update()
-            enemy_sprites.update(player)
 
         health = player.health
         for sprite in ui_sprites:
@@ -247,7 +247,8 @@ def start_game():
 
         anim_index += 1
 
-        if player.die:
+        if player.health <= 0:
+            player.die = True
             game_over()
             return
 
@@ -262,6 +263,7 @@ def game_over():
     player_sprites.empty()
     animated_sprites.empty()
     ui_sprites.empty()
+    enemy_sprites.empty()
     game_map = generate_field()
     player = None
 

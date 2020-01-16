@@ -34,7 +34,7 @@ tiles = {
         Tile('floor', 2),
         Tile('floor', 3)
     ],
-    'enemy': [Tile('enemy', 'wogol')],
+    'enemy': [Tile('enemy', 'enemy')],
     'items': [Tile("items", 'box')],
     'animated': [Tile("animated", 'spikes')]
 }
@@ -114,7 +114,7 @@ def generate_level(room):
                 if level[x][y].type == 'floor':
                     level[x][y] = tiles['animated'][0]
 
-        for _ in range(6):
+        for _ in range(3):
             x = randint(5, 13)
             y = randint(5, 13)
 
