@@ -1,5 +1,4 @@
 from Functions import load_image
-from collections import namedtuple
 
 
 def return_tiles():

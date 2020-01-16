@@ -9,6 +9,7 @@ import pygame
 # import classes from other files
 import UI
 import Tile
+import Enemy
 import Tiles
 import Button
 import Camera
@@ -32,10 +33,12 @@ floor = namedtuple('Floor', ['type', 'name'])('floor', 0)
 
 # sprites
 gameover_button_sprites = pygame.sprite.GroupSingle()
+portal_sprites = pygame.sprite.GroupSingle()
 main_button_sprites = pygame.sprite.Group()
 animated_sprites = pygame.sprite.Group()
 player_sprites = pygame.sprite.Group()
 floor_sprites = pygame.sprite.Group()
+enemy_sprites = pygame.sprite.Group()
 side_sprites = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
 ui_sprites = pygame.sprite.Group()
@@ -119,6 +122,7 @@ def terminate():
 
 def load_map(field):
     player_x, player_y = None, None
+    enemies_coordinates = []
     for row in range(field.get_width()):
         for column in range(field.get_width()):
             if isinstance(field.get_room(row, column), Room):
@@ -163,6 +167,21 @@ def load_map(field):
                                         1, 4, x + column * k, y + row * k,
                                         animated_sprites, all_sprites
                                     )
+                                elif 'enemy' in level[y][x].type:
+                                    enemies_coordinates.append(
+                                        (x + column * k, y + row * k)
+                                    )
+                                    Tile.Tile(
+                                        floor, tiles, all_sprites,
+                                        floor_sprites, x + column * k,
+                                        y + row * k
+                                    )
+
+    for enemy_x, enemy_y in enemies_coordinates:
+        Enemy.Enemy(
+            tiles['enemy']['wogol'], 1, 4, enemy_x, enemy_x,
+            enemy_sprites, all_sprites
+        )
 
     return player_x, player_y
 
@@ -212,6 +231,7 @@ def start_game():
 
         if anim_index % 24 == 0:
             animated_sprites.update()
+            enemy_sprites.update(player)
 
         health = player.health
         for sprite in ui_sprites:
