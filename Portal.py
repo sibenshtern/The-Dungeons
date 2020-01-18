@@ -30,5 +30,5 @@ class Portal(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
 
         if pygame.sprite.collide_mask(self, player):
-            player.score += 100
+            player.score += 5 * player.health
             player.next_level = True
