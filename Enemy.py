@@ -21,6 +21,7 @@ class Enemy(pygame.sprite.Sprite):
         elif player.rect.y < self.rect.y:
             self.rect.y -= 2
 
+    def check_player(self, player):
         if pygame.sprite.collide_mask(self, player):
             player.health -= 1
 

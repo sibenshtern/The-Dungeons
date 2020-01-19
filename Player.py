@@ -39,21 +39,28 @@ class Player(pygame.sprite.Sprite):
                     pygame.Rect(frame_location, self.rect.size)
                 ))
 
-    def move(self, distance, collided_sprites, up=False, right=False,
+    def check_enemies(self, enemies):
+        for sprite in enemies:
+            if pygame.sprite.collide_mask(self, sprite):
+                sprite.kill()
+                self.score += 10
+
+    def move(self, distance, *collided_sprites, up=False, right=False,
              down=False, left=False):
         if not self.die:
-            for sprite in collided_sprites:
-                if pygame.sprite.collide_mask(self, sprite):
-                    sprite_x = sprite.rect.x
-                    sprite_y = sprite.rect.y
-                    if sprite_x > self.rect.x:
-                        left = False
-                    if sprite_x < self.rect.x:
-                        right = False
-                    if sprite_y < self.rect.y:
-                        up = False
-                    if sprite_y > self.rect.y:
-                        down = False
+            for sprite_group in collided_sprites:
+                for sprite in sprite_group:
+                    if pygame.sprite.collide_mask(self, sprite):
+                        sprite_x = sprite.rect.x
+                        sprite_y = sprite.rect.y
+                        if sprite_x > self.rect.x:
+                            left = False
+                        if sprite_x < self.rect.x:
+                            right = False
+                        if sprite_y < self.rect.y:
+                            up = False
+                        if sprite_y > self.rect.y:
+                            down = False
 
             if up:
                 self.rect.y -= distance

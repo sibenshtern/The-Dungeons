@@ -11,6 +11,7 @@ import UI
 import Tile
 import Enemy
 import Tiles
+import Potion
 import Portal
 import Button
 import Camera
@@ -44,9 +45,12 @@ class Game:
         self.portal_sprite = pygame.sprite.GroupSingle()
 
         self.player_sprite = pygame.sprite.GroupSingle()
+        self.sword_sprite = pygame.sprite.GroupSingle()
         self.animated_sprites = pygame.sprite.Group()
+        self.potion_sprites = pygame.sprite.Group()
         self.floor_sprites = pygame.sprite.Group()
         self.enemy_sprites = pygame.sprite.Group()
+        self.boxes_sprites = pygame.sprite.Group()
         self.side_sprites = pygame.sprite.Group()
         self.all_sprites = pygame.sprite.Group()
         self.ui_sprites = pygame.sprite.Group()
@@ -78,7 +82,7 @@ class Game:
         self.screen.blit(rendered_text, header_rect)
 
         # create buttons
-        buttons = ['Start Game', 'Record Table']
+        buttons = ['Start Game', 'Record Table', 'Rules']
         button_classes = []
 
         for i in range(len(buttons)):
@@ -142,15 +146,24 @@ class Game:
             for game_event in pygame.event.get():
                 if game_event.type == pygame.QUIT:
                     self.terminate()
+                if game_event.type == pygame.KEYDOWN:
+                    if game_event.key == pygame.K_SPACE:
+                        self.player.check_enemies(self.enemy_sprites)
+                    if game_event.key == pygame.K_RETURN:
+                        self.potion_sprites.update(self.player)
 
             if pygame.key.get_pressed()[pygame.K_UP] == 1:
-                self.player.move(3, self.side_sprites, up=True)
+                self.player.move(3, self.side_sprites, self.boxes_sprites,
+                                 up=True)
             if pygame.key.get_pressed()[pygame.K_RIGHT] == 1:
-                self.player.move(3, self.side_sprites, left=True)
+                self.player.move(3, self.side_sprites, self.boxes_sprites,
+                                 left=True)
             if pygame.key.get_pressed()[pygame.K_DOWN] == 1:
-                self.player.move(3, self.side_sprites, down=True)
+                self.player.move(3, self.side_sprites, self.boxes_sprites,
+                                 down=True)
             if pygame.key.get_pressed()[pygame.K_LEFT] == 1:
-                self.player.move(3, self.side_sprites, right=True)
+                self.player.move(3, self.side_sprites, self.boxes_sprites,
+                                 right=True)
 
             self.screen.fill(self.bg_color)
 
@@ -159,6 +172,7 @@ class Game:
             self.ui_sprites.update(f'Your score: {self.player.score}')
             self.portal_sprite.draw(self.screen)
             self.player_sprite.draw(self.screen)
+            self.sword_sprite.draw(self.screen)
 
             self.camera.update(self.player)
 
@@ -167,11 +181,16 @@ class Game:
 
             if animate_index % 6 == 0:
                 self.player_sprite.update()
+
+            if animate_index % 12 == 0:
                 self.enemy_sprites.update(self.player)
 
             if animate_index % 24 == 0:
                 self.animated_sprites.update()
                 self.portal_sprite.update(self.player)
+
+                for enemy_sprite in self.enemy_sprites:
+                    enemy_sprite.check_player(self.player)
 
             health = self.player.health
             for sprite in self.ui_sprites:
@@ -181,9 +200,10 @@ class Game:
                             sprite.image = sprite.half_heart
                         elif health - 2 <= -2:
                             sprite.image = sprite.empty_heart
-                        else:
-                            sprite.image = sprite.full_heart
+                    else:
+                        sprite.image = sprite.full_heart
                     health -= 2
+                print(health)
 
             animate_index += 1
 
@@ -205,6 +225,8 @@ class Game:
         portal_x, portal_y = None, None
 
         enemies_coordinates = []
+        boxes_coordinates = []
+        potions_coordinates = []
         for row in range(field.get_width()):
             for column in range(field.get_width()):
                 if isinstance(field.get_room(row, column), Room):
@@ -243,6 +265,27 @@ class Game:
                                             self.floor, x + column * self.k,
                                             y + row * self.k
                                         )
+                                    elif level[y][x].type.startswith('items'):
+                                        if level[y][x].name == 'box':
+                                            boxes_coordinates.append(
+                                                (x + column * self.k,
+                                                 y + row * self.k, level[y][x])
+                                            )
+                                            self.load_tile(
+                                                self.floor,
+                                                x + column * self.k,
+                                                y + row * self.k
+                                            )
+                                        elif level[y][x].name == 'potion':
+                                            potions_coordinates.append(
+                                                (x + column * self.k,
+                                                 y + row * self.k)
+                                            )
+                                            self.load_tile(
+                                                self.floor,
+                                                x + column * self.k,
+                                                y + row * self.k
+                                            )
                                     else:
                                         self.load_tile(
                                             level[y][x], x + column * self.k,
@@ -255,6 +298,14 @@ class Game:
             Enemy.Enemy(
                 self.tiles['enemy']['enemy'], enemy_x, enemy_y,
                 self.enemy_sprites, self.all_sprites
+            )
+
+        for tile in boxes_coordinates:
+            self.load_tile(tile[2], tile[0], tile[1])
+
+        for potion_x, potion_y in potions_coordinates:
+            Potion.Potion(
+                potion_x, potion_y, self.potion_sprites, self.all_sprites
             )
 
         return player_x, player_y
@@ -274,12 +325,19 @@ class Game:
                     self.tiles[tile.type][tile.name], 1, 4, x, y,
                     self.animated_sprites, self.all_sprites
                 )
+        elif tile.type.startswith('items'):
+            Tile.Tile(
+                tile, self.tiles, self.all_sprites, self.boxes_sprites, x, y
+            )
 
     def next_level(self):
         self.ui_sprites.empty()
         self.all_sprites.empty()
         self.enemy_sprites.empty()
         self.player_sprite.empty()
+        self.sword_sprite.empty()
+        self.boxes_sprites.empty()
+        self.potion_sprites.empty()
         self.animated_sprites.empty()
 
         self.player_health = self.player.health
@@ -292,6 +350,9 @@ class Game:
         self.all_sprites.empty()
         self.enemy_sprites.empty()
         self.player_sprite.empty()
+        self.sword_sprite.empty()
+        self.boxes_sprites.empty()
+        self.potion_sprites.empty()
         self.animated_sprites.empty()
 
         self.player_health = 20

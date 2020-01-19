@@ -26,7 +26,8 @@ def return_tiles():
             'right': load_image('Tiles\\Sides', 'side_mid_right.png')
         },
         'items': {
-            'box': load_image('Tiles\\Items', 'crate.png')
+            'box': load_image('Tiles\\Items', 'crate.png'),
+            'potion': load_image('Tiles\\Items', 'health_potion.png')
         },
         'floor': [
             load_image('Tiles\\Floor', '1.png'),

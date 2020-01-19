@@ -35,7 +35,7 @@ tiles = {
         Tile('floor', 3)
     ],
     'enemy': [Tile('enemy', 'enemy')],
-    'items': [Tile("items", 'box')],
+    'items': [Tile("items", 'box'), Tile('items', 'potion')],
     'animated': [Tile("animated", 'spikes'), Tile('animated', 'portal')]
 }
 
@@ -105,7 +105,7 @@ def generate_level(room):
     if room.description == 'SR':
         level[randint(3, 7)][randint(3, 7)] = 'player'
 
-    if room.description not in ['SR', 'PR']:
+    if room.description not in ['SR', 'PR', 'CR']:
         for _ in range(7):
             x = randint(4, 14)
             y = randint(4, 14)
@@ -122,7 +122,18 @@ def generate_level(room):
                 if level[x][y].type == 'floor':
                     level[x][y] = tiles['enemy'][0]
 
+        for _ in range(10):
+            x = randint(3, 15)
+            y = randint(3, 15)
+
+            if isinstance(level[x][y], Tile):
+                if level[x][y].type == 'floor':
+                    level[x][y] = tiles['items'][0]
+
     if room.description == 'PR':
         level[9][9] = tiles['animated'][1]
+
+    if room.description == 'CR':
+        level[8][7] = tiles['items'][1]
 
     return level
