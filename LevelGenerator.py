@@ -122,7 +122,7 @@ def generate_level(room):
                 if level[x][y].type == 'floor':
                     level[x][y] = tiles['enemy'][0]
 
-        for _ in range(10):
+        for _ in range(5):
             x = randint(3, 15)
             y = randint(3, 15)
 

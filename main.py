@@ -33,6 +33,7 @@ class Game:
         self.window_height = window_height
 
         self.screen = pygame.display.set_mode(self.size)
+        pygame.display.set_icon(load_image('images', 'icon.png'))
         self.clock = pygame.time.Clock()
 
         self.camera = Camera.Camera(self.window_width, self.window_height)
@@ -181,8 +182,6 @@ class Game:
 
             if animate_index % 6 == 0:
                 self.player_sprite.update()
-
-            if animate_index % 12 == 0:
                 self.enemy_sprites.update(self.player)
 
             if animate_index % 24 == 0:
@@ -203,7 +202,6 @@ class Game:
                     else:
                         sprite.image = sprite.full_heart
                     health -= 2
-                print(health)
 
             animate_index += 1
 
