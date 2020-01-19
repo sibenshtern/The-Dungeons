@@ -1,6 +1,8 @@
 from __future__ import annotations
 import os
 import sys
+import sqlite3
+import datetime
 import webbrowser
 from collections import namedtuple
 
@@ -26,7 +28,6 @@ from MapGenerator import generate_field, Room
 class Game:
 
     def __init__(self, window_width, window_height):
-        pygame.init()
 
         self.size = window_width, window_height
         self.window_width = window_width
@@ -57,6 +58,7 @@ class Game:
         self.ui_sprites = pygame.sprite.Group()
 
         self.tiles = Tiles.return_tiles()
+        self.connection = sqlite3.connect('database.db')
 
         # special player variables
         self.player_health = 20
@@ -118,6 +120,12 @@ class Game:
                             if button.button_type == 'start game':
                                 self.game()
                                 return
+                            if button.button_type == 'record table':
+                                self.show_record_table()
+                                return
+                            if button.button_type == 'rules':
+                                self.show_rules()
+                                return
 
             self.main_button_sprites.draw(self.screen)
             self.main_button_sprites.update()
@@ -138,7 +146,7 @@ class Game:
 
         UI.Text(f'Your score: {self.player.score}', self.ui_sprites)
 
-        pygame.mixer.music.load(os.path.join('data', 'soundtrack1.mp3'))
+        pygame.mixer.music.load('data\\soundtrack1.wav')
         pygame.mixer.music.play(10)
         pygame.mixer.music.set_volume(0.01)
 
@@ -216,6 +224,94 @@ class Game:
                 return None
 
             self.clock.tick(self.FPS)
+            pygame.display.flip()
+
+    def show_record_table(self):
+        self.clear_sprites()
+        self.screen.fill(self.bg_color)
+
+        font = pygame.font.Font(os.path.join('data', 'font.ttf'), 24)
+        cur = self.connection.cursor()
+        data = cur.execute("SELECT date_time, score FROM results").fetchall()
+
+        i = 0
+        pygame.draw.line(
+            self.screen, pygame.Color('white'), (64, 64 * i + 64),
+            (self.window_width - 64, 64 * i + 64), 5
+        )
+
+        titles = ['Date and time', 'Score']
+        for i in range(2):
+            title = titles[i]
+            rendered_line = font.render(title, 1, pygame.Color('yellow'))
+            line_rect = rendered_line.get_rect()
+            line_rect.x = 576 * i + 128
+            line_rect.y = 64 + 12
+            self.screen.blit(rendered_line, line_rect)
+
+        for i in range(9):
+            pygame.draw.line(
+                self.screen, pygame.Color('white'), (64, 64 * (i + 1) + 64),
+                (self.window_width - 64, 64 * (i + 1) + 64), 5
+            )
+
+            if i < len(data):
+                for j in range(2):
+                    rendered_line = font.render(str(data[i][j]), 1,
+                                                pygame.Color('yellow'))
+                    text_rect = rendered_line.get_rect()
+                    text_rect.x = 576 * j + 128
+                    text_rect.y = ((64 + 12) * (i + 1) + (64 + 12))
+                    self.screen.blit(rendered_line, text_rect)
+
+            for j in range(3):
+                pygame.draw.line(
+                    self.screen, pygame.Color('white'),
+                    (576 * j + 64, 64 * i + 64),
+                    (576 * j + 64, 64 * (i + 1) + 64), 5
+                )
+
+        while True:
+            for table_event in pygame.event.get():
+                if table_event.type == pygame.QUIT:
+                    self.terminate()
+                    return None
+                if table_event.type == pygame.KEYDOWN:
+                    if table_event.key == pygame.K_ESCAPE:
+                        self.menu()
+                        return None
+
+            pygame.display.flip()
+
+    def show_rules(self):
+        self.screen.fill(self.bg_color)
+
+
+        lines = [
+            'Rules: ', "Game doesn't pause",
+            'Controls: ', "Movement: arrows on keyboard",
+            "Drink potion: Enter", "Hit enemy: Space",
+            "Exit from 'Record table' and 'Rules': escape"
+        ]
+        font = pygame.font.Font(os.path.join('data', 'font.ttf'), 24)
+
+        for i in range(len(lines)):
+            rendered_line = font.render(lines[i], 1, pygame.Color('yellow'))
+            text_rect = rendered_line.get_rect()
+            text_rect.x = 64
+            text_rect.y = 64 * i + 64
+            self.screen.blit(rendered_line, text_rect)
+
+        while True:
+            for table_event in pygame.event.get():
+                if table_event.type == pygame.QUIT:
+                    self.terminate()
+                    return None
+                if table_event.type == pygame.KEYDOWN:
+                    if table_event.key == pygame.K_ESCAPE:
+                        self.menu()
+                        return None
+
             pygame.display.flip()
 
     def load_map(self, field) -> tuple:
@@ -329,14 +425,7 @@ class Game:
             )
 
     def next_level(self):
-        self.ui_sprites.empty()
-        self.all_sprites.empty()
-        self.enemy_sprites.empty()
-        self.player_sprite.empty()
-        self.sword_sprite.empty()
-        self.boxes_sprites.empty()
-        self.potion_sprites.empty()
-        self.animated_sprites.empty()
+        self.clear_sprites()
 
         self.player_health = self.player.health
         self.player_score = self.player.score
@@ -344,14 +433,24 @@ class Game:
         self.game()
 
     def game_over(self):
-        self.ui_sprites.empty()
-        self.all_sprites.empty()
-        self.enemy_sprites.empty()
-        self.player_sprite.empty()
-        self.sword_sprite.empty()
-        self.boxes_sprites.empty()
-        self.potion_sprites.empty()
-        self.animated_sprites.empty()
+        self.clear_sprites()
+
+        cur = self.connection.cursor()
+
+        nd = datetime.datetime.now()  # now datetime
+        day = str(nd.day)
+        month = str(nd.month)
+        year = str(nd.year)
+
+        hour = str(nd.hour)
+        minute = str(nd.minute)
+
+        sd = f'{day}.{month.rjust(2, "0")}.{nd.year} | ' \
+             f'{hour.rjust(2, "0")}:{minute.rjust(2, "0")}'
+
+        cur.execute('INSERT INTO results(date_time, score) VALUES(?, ?)',
+                    (sd, self.player.score))
+        self.connection.commit()
 
         self.player_health = 20
         self.player = None
@@ -406,10 +505,22 @@ class Game:
             self.game_over_button_sprite.update()
             pygame.display.flip()
 
+    def clear_sprites(self):
+        self.ui_sprites.empty()
+        self.all_sprites.empty()
+        self.enemy_sprites.empty()
+        self.player_sprite.empty()
+        self.sword_sprite.empty()
+        self.boxes_sprites.empty()
+        self.potion_sprites.empty()
+        self.animated_sprites.empty()
+
     @staticmethod
     def terminate():
         sys.exit(pygame.quit())
 
 
+pygame.init()
 game = Game(1280, 680)
 game.start()
+pygame.quit()
