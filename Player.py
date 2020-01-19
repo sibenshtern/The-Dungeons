@@ -42,6 +42,8 @@ class Player(pygame.sprite.Sprite):
     def check_enemies(self, enemies):
         for sprite in enemies:
             if pygame.sprite.collide_mask(self, sprite):
+                pygame.mixer.music.load('data\\hit.wav')
+                pygame.mixer.music.play(1)
                 sprite.kill()
                 self.score += 10
 

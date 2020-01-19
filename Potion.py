@@ -12,6 +12,7 @@ class Potion(pygame.sprite.Sprite):
 
     def update(self, player):
         if pygame.sprite.collide_mask(self, player):
+            pygame.mixer.music.load('data\\drink.wav')
+            pygame.mixer.music.play(1)
             player.health = player.health + 2
-            print(player.health)
             self.kill()

@@ -68,6 +68,10 @@ class Game:
         self.k = 19  # special variable which need for right room's drawing
         self.bg_color = pygame.Color(29, 16, 70)
 
+        sound = pygame.mixer.Sound('data\\soundtrack1.wav')
+        sound.play(10)
+        sound.set_volume(0.04)
+
     def start(self):
         self.menu()
         return None
@@ -115,6 +119,9 @@ class Game:
                 if menu_event.type == pygame.MOUSEBUTTONDOWN:
                     for button in button_classes:
                         if button.rect.collidepoint(menu_event.pos):
+                            pygame.mixer.music.load('data\\press_button.wav')
+                            pygame.mixer.music.set_volume(0.05)
+                            pygame.mixer.music.play(1)
                             if button.button_type == 'open website':
                                 webbrowser.open(button.website)
                             if button.button_type == 'start game':
@@ -145,10 +152,6 @@ class Game:
             UI.Heart((32 + index * 24, 32), self.ui_sprites)
 
         UI.Text(f'Your score: {self.player.score}', self.ui_sprites)
-
-        pygame.mixer.music.load('data\\soundtrack1.wav')
-        pygame.mixer.music.play(10)
-        pygame.mixer.music.set_volume(0.01)
 
         # game loop
         while True:
@@ -232,7 +235,9 @@ class Game:
 
         font = pygame.font.Font(os.path.join('data', 'font.ttf'), 24)
         cur = self.connection.cursor()
-        data = cur.execute("SELECT date_time, score FROM results").fetchall()
+        data = cur.execute("SELECT id, date_time, score FROM results").\
+            fetchall()
+        data = sorted(data, key=lambda x: x[0], reverse=True)
 
         i = 0
         pygame.draw.line(
@@ -255,13 +260,13 @@ class Game:
                 (self.window_width - 64, 64 * (i + 1) + 64), 5
             )
 
-            if i < len(data):
+            if i < len(data) - 1:
                 for j in range(2):
-                    rendered_line = font.render(str(data[i][j]), 1,
+                    rendered_line = font.render(str(data[i][j + 1]), 1,
                                                 pygame.Color('yellow'))
                     text_rect = rendered_line.get_rect()
                     text_rect.x = 576 * j + 128
-                    text_rect.y = ((64 + 12) * (i + 1) + (64 + 12))
+                    text_rect.y = (64 * (i + 1) + 76)
                     self.screen.blit(rendered_line, text_rect)
 
             for j in range(3):
@@ -277,6 +282,9 @@ class Game:
                     self.terminate()
                     return None
                 if table_event.type == pygame.KEYDOWN:
+                    pygame.mixer.music.load('data\\press_button.wav')
+                    pygame.mixer.music.set_volume(0.05)
+                    pygame.mixer.music.play(1)
                     if table_event.key == pygame.K_ESCAPE:
                         self.menu()
                         return None
@@ -286,9 +294,8 @@ class Game:
     def show_rules(self):
         self.screen.fill(self.bg_color)
 
-
         lines = [
-            'Rules: ', "Game doesn't pause",
+            'Rules: ', "Game doesn't have pause",
             'Controls: ', "Movement: arrows on keyboard",
             "Drink potion: Enter", "Hit enemy: Space",
             "Exit from 'Record table' and 'Rules': escape"
@@ -309,6 +316,9 @@ class Game:
                     return None
                 if table_event.type == pygame.KEYDOWN:
                     if table_event.key == pygame.K_ESCAPE:
+                        pygame.mixer.music.load('data\\press_button.wav')
+                        pygame.mixer.music.set_volume(0.05)
+                        pygame.mixer.music.play(1)
                         self.menu()
                         return None
 
