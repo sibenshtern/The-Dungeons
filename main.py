@@ -260,7 +260,7 @@ class Game:
                 (self.window_width - 64, 64 * (i + 1) + 64), 5
             )
 
-            if i < len(data) - 2:
+            if i < 8:
                 for j in range(2):
                     rendered_line = font.render(str(data[i][j + 1]), 1,
                                                 pygame.Color('yellow'))
