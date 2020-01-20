@@ -35,6 +35,7 @@ class Game:
 
         self.screen = pygame.display.set_mode(self.size)
         pygame.display.set_icon(load_image('images', 'icon.png'))
+        pygame.display.set_caption('The Dungeons')
         self.clock = pygame.time.Clock()
 
         self.camera = Camera.Camera(self.window_width, self.window_height)
@@ -184,7 +185,6 @@ class Game:
             self.ui_sprites.update(f'Your score: {self.player.score}')
             self.portal_sprite.draw(self.screen)
             self.player_sprite.draw(self.screen)
-            self.sword_sprite.draw(self.screen)
 
             self.camera.update(self.player)
 
@@ -398,18 +398,18 @@ class Game:
 
         Portal.Portal(portal_x, portal_y, self.portal_sprite, self.all_sprites)
 
-        for enemy_x, enemy_y in enemies_coordinates:
-            Enemy.Enemy(
-                self.tiles['enemy']['enemy'], enemy_x, enemy_y,
-                self.enemy_sprites, self.all_sprites
-            )
-
         for tile in boxes_coordinates:
             self.load_tile(tile[2], tile[0], tile[1])
 
         for potion_x, potion_y in potions_coordinates:
             Potion.Potion(
                 potion_x, potion_y, self.potion_sprites, self.all_sprites
+            )
+
+        for enemy_x, enemy_y in enemies_coordinates:
+            Enemy.Enemy(
+                self.tiles['enemy']['enemy'], enemy_x, enemy_y,
+                self.enemy_sprites, self.all_sprites
             )
 
         return player_x, player_y
