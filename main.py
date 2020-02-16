@@ -71,7 +71,7 @@ class Game:
 
         sound = pygame.mixer.Sound('data\\soundtrack1.wav')
         sound.play(10)
-        sound.set_volume(0.04)
+        sound.set_volume(0.03)
 
     def start(self):
         self.menu()
@@ -90,12 +90,12 @@ class Game:
         self.screen.blit(rendered_text, header_rect)
 
         # create buttons
-        buttons = ['Start Game', 'Record Table', 'Rules']
+        buttons = ['Start Game', 'Record Table', 'Rules', 'Exit']
         button_classes = []
 
         for i in range(len(buttons)):
             button_center = self.window_width // 2
-            button_y = 269 + (16 * (i + 1)) + 64 * i
+            button_y = 200 + (16 * (i + 1)) + 64 * i
 
             button_classes.append(
                 Button.Button(
@@ -133,6 +133,9 @@ class Game:
                                 return
                             if button.button_type == 'rules':
                                 self.show_rules()
+                                return
+                            if button.button_type == 'exit':
+                                self.terminate()
                                 return
 
             self.main_button_sprites.draw(self.screen)
@@ -461,6 +464,7 @@ class Game:
         cur.execute('INSERT INTO results(date_time, score) VALUES(?, ?)',
                     (sd, self.player.score))
         self.connection.commit()
+        cur.close()
 
         self.player_health = 20
         self.player = None
@@ -525,8 +529,8 @@ class Game:
         self.potion_sprites.empty()
         self.animated_sprites.empty()
 
-    @staticmethod
-    def terminate():
+    def terminate(self):
+        self.connection.close()
         sys.exit(pygame.quit())
 
 

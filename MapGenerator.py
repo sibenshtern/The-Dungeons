@@ -291,7 +291,7 @@ def generate_field():
                     verdict = True
 
     if verdict:
-        field.field[need_x][need_y].description = 'PR'
+        field.get_room(need_x, need_y).set_description('PR')
 
     for room in field.get_rooms():
         if isinstance(room, EndRoom) and room.description not in ['SR', 'PR']:

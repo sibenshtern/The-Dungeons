@@ -40,7 +40,6 @@ tiles = {
 }
 
 
-# noinspection PyTypeChecker
 def generate_level(room):
     width = 20
     width -= width % 2

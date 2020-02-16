@@ -4,8 +4,7 @@ env
 __pycache__
 text*
 musc*
+dist
 0x72_DungeonTilesetII_v1.3
-
-
-
-
+solution*
+command to compile main.py to exe.txt
